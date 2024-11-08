@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="description"
+      content="This paper aims to design a unified Computer-Aided Design (CAD) generation system that can easily generate CAD models based on the user’s inputs in the form of textual description, images, point clouds, or even a combination of them. Towards this goal, we introduce the CAD-MLLM, the first system capable of generating parametric CAD models conditioned on the multimodal input. Specifically, within the CAD-MLLM framework, we leverage the command sequences of CAD models and then employ advanced large language models (LLMs) to align the feature space across these diverse multi-modalities data and CAD models’ vectorized representations. To facilitate the model training, we design a comprehensive data construction and annotation pipeline that equips each CAD model with corresponding multimodal data. Our resulting dataset, named Omni-CAD, is the first multimodal CAD dataset that contains textual description, multi-view images, points, and command sequence for each CAD model. It contains approximately 450K instances and their CAD construction sequences. To thoroughly evaluate the quality of our generated CAD models, we go beyond current evaluation metrics that focus on reconstruction quality by introducing additional metrics that assess topology quality and surface enclosure extent. Extensive experimental results demonstrate that CAD-MLLM significantly outperforms existing conditional generative methods and remains highly robust to noises and missing points."
+    />
+    <meta name="keywords" content="Computer-Aided Design Models, Multimodal Large Language Models, Multimodality Data" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      CAD-MLLM: Unifying Multimodality-Conditioned CAD Generation With MLLM
+    </title>
+
+    <link
+      href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="./static/css/bulma.min.css" />
+    <link rel="stylesheet" href="./static/css/bulma-carousel.min.css" />
+    <link rel="stylesheet" href="./static/css/bulma-slider.min.css" />
+    <link rel="stylesheet" href="./static/css/fontawesome.all.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css"
+    />
+    <link rel="stylesheet" href="./static/css/index.css" />
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script defer src="./static/js/fontawesome.all.min.js"></script>
+    <script src="./static/js/bulma-carousel.min.js"></script>
+    <script src="./static/js/bulma-slider.min.js"></script>
+
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
+
+    <link rel="stylesheet" href="./static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./static/css/app.css"/>
+    <script src="./static/js/app.js"></script>
+    <link rel="stylesheet" href="./static/css/dics.min.css"/>
+    <script src="./static/js/dics.min.js"></script>
+    <script src="./static/js/video_comparison.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', domReady);
+        function domReady() {
+            for (const e of document.querySelectorAll(".b-dics")) {
+                new Dics({
+                    container: e,
+                    textPosition: "top"
+                });
+            }
+        }
+    </script>
+    <script src="./static/js/index.js"></script>
+    <script src="./static/js/zotero-meta.js"></script>
+    <script>
+      $(document).ready(function () {
+        const citations = [
+          {
+            name: "citation_title",
+            content:
+              "CAD-MLLM: Unifying Multimodality-Conditioned CAD Generation With MLLM",
+          },
+          {
+            name: "citation_author",
+            content: "Xu, Jingwei",
+          },
+          {
+            name: "citation_author",
+            content: "Wang, Chenyu",
+          },
+          {
+            name: "citation_author",
+            content: "Zhao, Zibo",
+          },
+          {
+            name: "citation_author",
+            content: "Liu, Wen",
+          },
+          {
+            name: "citation_author",
+            content: "Ma, Yi",
+          },
+          {
+            name: "citation_author",
+            content: "Gao, Shenghua",
+          },
+          {
+            name: "citation_date",
+            content: "",
+          },
+          {
+            name: "citation_online_date",
+            content: "",
+          },
+          {
+            name: "citation_pdf_url",
+            content: "",
+          },
+          {
+            name: "citation_arxiv_id",
+            content: "",
+          },
+          {
+            name: "citation_abstract",
+            content:
+              "This paper aims to design a unified Computer-Aided Design (CAD) generation system that can easily generate CAD models based on the user’s inputs in the form of textual description, images, point clouds, or even a combination of them. Towards this goal, we introduce the CAD-MLLM, the first system capable of generating parametric CAD models conditioned on the multimodal input. Specifically, within the CAD-MLLM framework, we leverage the command sequences of CAD models and then employ advanced large language models (LLMs) to align the feature space across these diverse multi-modalities data and CAD models’ vectorized representations. To facilitate the model training, we design a comprehensive data construction and annotation pipeline that equips each CAD model with corresponding multimodal data. Our resulting dataset, named Omni-CAD, is the first multimodal CAD dataset that contains textual description, multi-view images, points, and command sequence for each CAD model. It contains approximately 450K instances and their CAD construction sequences. To thoroughly evaluate the quality of our generated CAD models, we go beyond current evaluation metrics that focus on reconstruction quality by introducing additional metrics that assess topology quality and surface enclosure extent. Extensive experimental results demonstrate that CAD-MLLM significantly outperforms existing conditional generative methods and remains highly robust to noises and missing points.",
+          },
+        ];
+        createCitationMeta(citations);
+      });
+    </script>
+  </head>
+
+  <style>
+    button {
+      padding: 0.5em 0.75em;
+      margin: 0.4em 0.4em;
+      /* min-width: 18ch; */
+      /* max-width: 18ch; */
+      text-align: left;
+      background-color: #ddd;
+      color: #333;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+    
+      @media screen and (-ms-high-contrast: active) {
+        border: 2px solid currentcolor;
+      }
+    }
+  </style>
+  <body>
+
+    <section class="hero">
+      <div class="hero-body">
+        <div class="container is-max-desktop">
+          <div class="columns is-centered">
+            <div class="column has-text-centered">
+              <h1 class="title is-1 publication-title" style="font-size: 36px">
+                  CAD-MLLM: Unifying Multimodality-Conditioned CAD Generation With MLLM
+              </h1>
+              <div class="is-size-5 publication-authors">
+                <span class="author-block" style="font-size: 22px">
+                  <a href="https://davidxu-jj.github.io/">Jingwei Xu</a ><sup>1*</sup>,
+                </span>
+                <span class="author-block" style="font-size: 22px">
+                  <a href="https://github.com/jeremiah-wang">Chenyu Wang</a ><sup>2*</sup>,
+                </span>
+                <span class="author-block" style="font-size: 22px">
+                  <a href="https://maikouuu.github.io/">Zibo Zhao</a ><sup>1</sup>,
+                </span>
+                <span class="author-block" style="font-size: 22px">
+                  <a href="https://scholar.google.com/citations?user=A6K6bkoAAAAJ&hl=en">Wen Liu</a ><sup>3</sup>,
+                </span>
+                <span class="author-block" style="font-size: 22px">
+                  <a href="https://scholar.google.com/citations?user=XqLiBQMAAAAJ&hl=en">Yi Ma</a ><sup>4</sup>,
+                </span>
+                <span class="author-block" style="font-size: 22px">
+                  <a href="https://scholar.google.com.sg/citations?user=fe-1v0MAAAAJ&hl=en">Shenghua Gao</a ><sup>4†</sup>,
+                </span>
+              </div>
+
+              <div class="is-size-5 publication-authors">
+                <span class="author-block" style="font-size: 18px"
+                  ><sup>1</sup>ShanghaiTech University
+                </span>
+                <span class="author-block" style="font-size: 18px"
+                  ><sup>2</sup>Transcengram
+                </span>
+                <span class="author-block" style="font-size: 18px"
+                  ><sup>3</sup>DeepSeek AI
+                </span>
+                <span class="author-block" style="font-size: 18px"
+                  ><sup>4</sup>University of Hong Kong
+                </span>
+              </div>
+              <div class="is-size-5 publication-authors">
+                (* denotes equal contribution, † denotes the corresponding author)
+              </div>
+              <div class="column has-text-centered">
+                <div class="link-block">
+                  <!-- PDF Link. -->
+                  <!-- TODO -->
+                  <!-- <span class="link-block">
+                    <a
+                      href=""
+                      class="external-link button is-normal is-rounded is-dark"
+                    >
+                      <span class="icon">
+                        <i class="fas fa-file-pdf"></i>
+                      </span>
+                      <span>Paper(Coming soon)</span>
+                    </a>
+                  </span> -->
+                  <span class="link-block">
+                    <a
+                      href=""
+                      class="external-link button is-normal is-rounded is-dark"
+                    >
+                      <span class="icon">
+                        <i class="ai ai-arxiv"></i>
+                      </span>
+                      <span>arXiv</span>
+                    </a>
+                  </span>
+                  <!-- <span class="link-block">
+                <a href="#"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Supplementary</span>
+                </a>
+              </span> -->
+                  <!-- Video Link. -->
+                  <!-- <span class="link-block">
+                <a href="#"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-youtube"></i>
+                  </span>
+                  <span>Video</span>
+                </a>
+              </span> -->
+                  <!-- Code Link. -->
+                  <!-- TODO -->
+                  <span class="link-block">
+                    <a
+                      href="https://github.com/CAD-MLLM/CAD-MLLM"
+                      class="external-link button is-normal is-rounded is-dark"
+                    >
+                      <span class="icon">
+                        <i class="fab fa-github"></i>
+                      </span>
+                      <span>Code</span>
+                    </a>
+                  </span>
+                  <!-- Dataset Link. -->
+                  <!-- <span class="link-block">
+                <a href="https://mega.nz/folder/jdhDnTqL#Ija678SU2Va_JJOiwqmdEg"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="far fa-images"></i>
+                  </span>
+                  <span>Data</span>
+                </a>
+              </span> -->
+                </div>
+              </div>
+
+              <!-- <div style="font-size: 10px"> -->
+              <!--   <a href="https://www.zotero.org/" -->
+              <!--     ><b style="color: #a6212c">Z</b>otero Connector</a -->
+              <!--   > -->
+              <!--   friendly -->
+              <!-- </div> -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <div class="columns is-centered has-text-centered" id="video">
+      <div class="column is-four-fifths">
+        <!-- <h2 class="title is-2">Demo</h2> -->
+        <!-- <video class="video" width=100% id="original" loop playsinline autoplay muted src="./static/videos/demo.mp4" onplay="resizeAndPlay(this)"></video> --> 
+
+        <video controls>
+          <source src="./static/videos/demo.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+      </video>
+      </div>
+    </div>
+
+    <div class="columns is-centered has-text-centered" id="video">
+      <div class="column is-four-fifths">
+          <h2 class="title is-2">Example of Command Sequence Representation</h2>
+      </div>
+    </div>
+
+    <section class="hero teaser">
+      <div class="container is-max-desktop">
+        <div class="hero-body">
+          <img src="static/images/command_sequence.png" alt="CAD-MLLM" />
+          <h2 class="subtitle has-text-centered" style="font-size: 16px">
+            A simple example about the construction process of a CAD model with command sequence representation.</h2>
+        </div>
+      </div>
+    </section>
+
+
+    <div class="columns is-centered has-text-centered" id="video">
+      <div class="column is-four-fifths">
+          <h2 class="title is-2">Network Architecture</h2>
+      </div>
+    </div>
+
+    <section class="hero teaser">
+      <div class="container is-max-desktop">
+        <div class="hero-body">
+          <img src="static/images/pipeline.png" alt="CAD-MLLM" />
+          <h2 class="subtitle has-text-centered" style="font-size: 16px">
+            We propose a network capable of simultaneously processing up to three modalities of input data. Each non-text input is first processed through a frozen encoder, followed by a projection layer that aligns these features within a shared large language model (LLM) feature space. By integrating the prompt with the multi-modal embeddings and applying fine-tuning to the LLM using Low-Rank Adaptation (LoRA), our model generates accurate CAD models conditioned on the combined input data. 
+          </h2>
+        </div>
+      </div>
+    </section>
+
+    <div class="columns is-centered has-text-centered" id="video">
+      <div class="column is-four-fifths">
+          <h2 class="title is-2">Our Dataset(Omni-CAD)</h2>
+      </div>
+    </div>
+
+    <section class="hero teaser">
+      <div class="container is-max-desktop">
+        <div class="hero-body">
+          <img src="static/images/dataset_vis.png" alt="CAD-MLLM" />
+          <h2 class="subtitle has-text-centered" style="font-size: 16px">
+            <b>Qualitative Comparison:</b> We exclude the CAD models’ IDs that have been included in the DeepCAD dataset for visualization. The extension part of our dataset contains more complex and realistic models with more details.
+          </h2>
+        </div>
+      </div>
+    </section>
+
+    <section class="hero teaser">
+      <div class="container is-max-desktop">
+        <div class="hero-body">
+          <img src="static/images/dataset_multimodal.png" alt="CAD-MLLM" />
+          <h2 class="subtitle has-text-centered" style="font-size: 16px">
+            Example of the conditioned multimodality data and the corresponding ground truth CAD models.
+          </h2>
+        </div>
+      </div>
+    </section>
+
+    <div class="columns is-centered has-text-centered" id="video">
+      <div class="column is-four-fifths">
+          <h2 class="title is-2">Point Conditioned Generation Results</h2>
+          (Please view our paper for more results with more modalities conditions)
+      </div>
+    </div>
+
+    <section class="hero teaser">
+      <div class="container is-max-desktop">
+        <div class="hero-body">
+          <img src="static/images/result.png" alt="CAD-MLLM" />
+          <h2 class="subtitle has-text-centered" style="font-size: 16px">
+            Qualitative comparison with B-rep point reconstruction baselines. Blue lines denote dangling edges, which leads to non-manifold structures.
+          </h2>
+        </div>
+      </div>
+    </section>
+
+    <section class="hero teaser">
+      <div class="container is-max-desktop">
+        <div class="hero-body">
+          <img src="static/images/robustness.png" alt="CAD-MLLM" />
+          <h2 class="subtitle has-text-centered" style="font-size: 16px">
+            Our model demonstrates enhanced robustness against noise and partial point cloud elimintaion compared to the baseline.
+          </h2>
+        </div>
+      </div>
+    </section>
+   
+    <section class="section" id="BibTeX">
+      <div class="container is-max-desktop content">
+        <h2 class="title">BibTeX</h2>
+        <!-- TODO -->
+        <pre><code> @misc{xu2024CADMLLM,
+      title={CAD-MLLM: Unifying Multimodality-Conditioned CAD Generation With MLLM}, 
+      author={Jingwei Xu and Chenyu Wang and Zibo Zhao and Wen Liu and Yi Ma and Shenghua Gao},
+      year={},
+      eprint={},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+</code></pre>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="content has-text-centered">
+          <!-- TODO -->
+          <a class="icon-link" href="">
+            <i class="fas fa-file-pdf"></i>
+          </a>
+            <!-- TODO -->
+          <a
+            class="icon-link"
+            href=""
+            class="external-link"
+            disabled
+          >
+            <i class="fab fa-github"></i>
+          </a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      bulmaCarousel.attach("#geo-carousel", {
+        slidesToScroll: 1,
+        slidesToShow: 1,
+        infinite: true,
+      });
+      bulmaCarousel.attach("#novel-carousel", {
+        slidesToScroll: 1,
+        slidesToShow: 2,
+        infinite: true,
+      });
+      bulmaCarousel.attach("#edit-carousel", {
+        slidesToScroll: 1,
+        slidesToShow: 2,
+        infinite: true,
+      });
+    </script>
+  </body>
+</html>
